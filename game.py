@@ -27,11 +27,35 @@ class Square:
         self.color = color
         self.width = width
         self.total_rows = total_rows
+        self.piece = ""
         Square.square_num += 1
 
     def draw(self, win):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
 
+
+class Piece:
+    def __init__(self, square_num, color):
+        self.position = square_num
+        self.color = color
+    
+class Pawn(Piece):
+    def __init__(self, square_num, color):
+        super().__init__(square_num, color)
+    
+    def get_moves(self):
+        moves = ""
+
+        if self.color == 'WHITE':
+            moves = [min(0, self.position - 8)]
+        else:
+            moves =[max(64, self.position + 8)]
+        
+        return moves
+
+    def move(self, new_position):
+        if new_position in self.get_moves():
+            self.position = new_position
 
 
 def make_grid(rows, width):
