@@ -15,11 +15,11 @@ ORANGE = (255, 165, 0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
 
-class Square:
+class Board:
     square_num = 1
 
     def __init__(self, row, col, width, total_rows, color):
-        self.num = Square.square_num
+        self.num = Board.square_num
         self.row = row
         self.col = col
         self.x = row * width
@@ -28,7 +28,7 @@ class Square:
         self.width = width
         self.total_rows = total_rows
         self.piece = ""
-        Square.square_num += 1
+        Board.square_num += 1
 
     def draw(self, win):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
@@ -67,7 +67,7 @@ def make_grid(rows, width):
         color_idx += 1
         grid.append([])
         for j in range(rows):
-            spot = Square(i, j, gap, rows, colors[color_idx % 2])
+            spot = Board(i, j, gap, rows, colors[color_idx % 2])
             grid[i].append(spot)
             color_idx += 1
 
@@ -80,20 +80,25 @@ def draw(win, grid, rows, width):
     for row in grid:
         for square in row:
             square.draw(win)
-
+    
+    pawn = pygame.image.load("pawn4.png")
+    pawn = pygame.transform.scale(pawn, (130, 130))
+    win.blit(pawn, (-20 + 2*width / rows, -40))
+    
     pygame.display.update()
 
 
 def main(win, width):
     ROWS = 8
     grid = make_grid(ROWS, width)
-
+    
     run = True
     while run:
         draw(win, grid, ROWS, width)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+         
     
     pygame.quit()
 
