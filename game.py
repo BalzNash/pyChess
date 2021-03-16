@@ -15,11 +15,11 @@ ORANGE = (255, 165, 0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
 
-class Board:
+class Square:
     square_num = 1
 
     def __init__(self, row, col, width, total_rows, color):
-        self.num = Board.square_num
+        self.num = Square.square_num
         self.row = row
         self.col = col
         self.x = row * width
@@ -28,7 +28,13 @@ class Board:
         self.width = width
         self.total_rows = total_rows
         self.piece = ""
-        Board.square_num += 1
+        Square.square_num += 1
+
+    def select_square(self):
+        self.color = RED
+    
+    def select_square2(self):
+        self.color = PURPLE
 
     def draw(self, win):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
@@ -67,23 +73,48 @@ def make_grid(rows, width):
         color_idx += 1
         grid.append([])
         for j in range(rows):
-            spot = Board(i, j, gap, rows, colors[color_idx % 2])
+            spot = Square(j, i, gap, rows, colors[color_idx % 2])
             grid[i].append(spot)
             color_idx += 1
 
     return grid
 
 
-def draw(win, grid, rows, width):
+def create_pieces(grid):
+    pieces = []
+    for row in grid:
+        for square in row:
+            if square.num <= 16 or square.num >= 49:
+                pieces.append(Pawn(square.num, 'black'))
+    return pieces
+
+
+def get_clicked_pos(pos, rows, width):
+    gap = width // rows
+    y, x = pos
+
+    row = y // gap
+    col = x // gap
+
+    return row, col
+
+
+def draw(win, grid, rows, width, pieces, grid_coord):
     win.fill(WHITE)
+
 
     for row in grid:
         for square in row:
             square.draw(win)
+
+    # for piece in pieces:
+    #     pawn = pygame.image.load("pawn4.png")
+    #     pawn = pygame.transform.scale(pawn, (130, 130))
+    #     win.blit(pawn, (grid_coord[piece.position -1][0] -17, grid_coord[piece.position -1][1] -40))
     
-    pawn = pygame.image.load("pawn4.png")
-    pawn = pygame.transform.scale(pawn, (130, 130))
-    win.blit(pawn, (-20 + 2*width / rows, -40))
+    # pawn = pygame.image.load("pawn4.png")
+    # pawn = pygame.transform.scale(pawn, (130, 130))
+    # win.blit(pawn, (-20, -40))
     
     pygame.display.update()
 
@@ -91,14 +122,36 @@ def draw(win, grid, rows, width):
 def main(win, width):
     ROWS = 8
     grid = make_grid(ROWS, width)
+    flat_grid = [item for sublist in grid for item in sublist]
+    grid_coord = [(square.x,square.y) for square in flat_grid]
+    pieces = create_pieces(grid)
+    draw(win, grid, ROWS, width, pieces, grid_coord)
     
+    state = 'base'
+
     run = True
     while run:
-        draw(win, grid, ROWS, width)
         for event in pygame.event.get():
+            if state == 'base':
+                if pygame.mouse.get_pressed()[0]:
+                    pos = pygame.mouse.get_pos()
+                    row, col = get_clicked_pos(pos, ROWS, width)
+                    selected_square = grid[col][row]
+                    selected_square.select_square()
+                    state = 'move'
+            elif state == 'move':
+                if pygame.mouse.get_pressed()[0]:
+                    pos = pygame.mouse.get_pos()
+                    row, col = get_clicked_pos(pos, ROWS, width)
+                    selected_square = grid[col][row]
+                    selected_square.select_square2()
+                    state = 'base'
+
             if event.type == pygame.QUIT:
                 run = False
-         
+        
+        draw(win, grid, ROWS, width, pieces, grid_coord)
+
     
     pygame.quit()
 
