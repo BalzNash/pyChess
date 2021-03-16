@@ -18,7 +18,7 @@ TURQUOISE = (64, 224, 208)
 class Square:
     square_num = 1
 
-    def __init__(self, row, col, width, total_rows, color):
+    def __init__(self, row, col, width, total_rows, color, default_color):
         self.num = Square.square_num
         self.row = row
         self.col = col
@@ -28,6 +28,7 @@ class Square:
         self.width = width
         self.total_rows = total_rows
         self.piece = ""
+        self.default_color = default_color
         Square.square_num += 1
 
     def select_square(self):
@@ -49,7 +50,7 @@ class Pawn(Piece):
     def __init__(self, square_num, color):
         super().__init__(square_num, color)
     
-    def get_moves(self):
+    def get_moves(self, square):
         moves = ""
 
         if self.color == 'WHITE':
@@ -59,9 +60,14 @@ class Pawn(Piece):
         
         return moves
 
-    def move(self, new_position):
-        if new_position in self.get_moves():
-            self.position = new_position
+    def move(self, new_square):
+        if new_square in self.get_moves():
+            self.position = new_square
+
+    def get_valid_moves(self, flat_grid):
+        candidates = [max(0, self.position - 8)]
+        return [move for move in candidates if not flat_grid[move-1].piece]
+
 
 
 def make_grid(rows, width):
@@ -73,7 +79,7 @@ def make_grid(rows, width):
         color_idx += 1
         grid.append([])
         for j in range(rows):
-            spot = Square(j, i, gap, rows, colors[color_idx % 2])
+            spot = Square(j, i, gap, rows, colors[color_idx % 2], colors[color_idx % 2])
             grid[i].append(spot)
             color_idx += 1
 
@@ -86,6 +92,9 @@ def create_pieces(grid):
         for square in row:
             if square.num <= 16 or square.num >= 49:
                 pieces.append(Pawn(square.num, 'black'))
+                square.piece = 'pawn'
+            else:
+                pieces.append("")
     return pieces
 
 
@@ -99,7 +108,7 @@ def get_clicked_pos(pos, rows, width):
     return row, col
 
 
-def draw(win, grid, rows, width, pieces, grid_coord):
+def draw(win, grid, rows, width, pieces, grid_coord, pawn):
     win.fill(WHITE)
 
 
@@ -107,10 +116,9 @@ def draw(win, grid, rows, width, pieces, grid_coord):
         for square in row:
             square.draw(win)
 
-    # for piece in pieces:
-    #     pawn = pygame.image.load("pawn4.png")
-    #     pawn = pygame.transform.scale(pawn, (130, 130))
-    #     win.blit(pawn, (grid_coord[piece.position -1][0] -17, grid_coord[piece.position -1][1] -40))
+    for piece in pieces:
+        if piece:
+            win.blit(pawn, (grid_coord[piece.position -1][0] -17, grid_coord[piece.position -1][1] -40))
     
     # pawn = pygame.image.load("pawn4.png")
     # pawn = pygame.transform.scale(pawn, (130, 130))
@@ -125,7 +133,10 @@ def main(win, width):
     flat_grid = [item for sublist in grid for item in sublist]
     grid_coord = [(square.x,square.y) for square in flat_grid]
     pieces = create_pieces(grid)
-    draw(win, grid, ROWS, width, pieces, grid_coord)
+    pawn = pygame.image.load("pawn4.png")
+    pawn = pygame.transform.scale(pawn, (130, 130))
+
+    draw(win, grid, ROWS, width, pieces, grid_coord, pawn)
     
     state = 'base'
 
@@ -136,21 +147,35 @@ def main(win, width):
                 if pygame.mouse.get_pressed()[0]:
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
-                    selected_square = grid[col][row]
-                    selected_square.select_square()
-                    state = 'move'
+                    starting_square = grid[col][row]
+                    selected_piece = pieces[starting_square.num-1]
+                    if selected_piece:
+                        starting_square.select_square()
+                        state = 'move'
             elif state == 'move':
+                if pygame.mouse.get_pressed()[2]:
+                    state = 'base'
+                    starting_square.color = starting_square.default_color
+
                 if pygame.mouse.get_pressed()[0]:
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
                     selected_square = grid[col][row]
-                    selected_square.select_square2()
-                    state = 'base'
+                    print(selected_square.num)
+                    if selected_square.num in selected_piece.get_valid_moves(flat_grid):
+                        starting_square.piece = ""
+                        selected_piece.position = selected_square.num
+                        pieces[starting_square.num -1], pieces[selected_square.num -1] = pieces[selected_square.num -1], pieces[starting_square.num -1]
+                        selected_square.select_square2()
+                        starting_square.color = starting_square.default_color
+                        state = 'base'
+
+
 
             if event.type == pygame.QUIT:
                 run = False
         
-        draw(win, grid, ROWS, width, pieces, grid_coord)
+        draw(win, grid, ROWS, width, pieces, grid_coord, pawn)
 
     
     pygame.quit()
