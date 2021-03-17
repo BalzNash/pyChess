@@ -1,8 +1,11 @@
 import pygame
 
+pygame.init()
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Chess Game")
+font = pygame.font.Font(None, 30)
+clock = pygame.time.Clock()
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -50,6 +53,7 @@ class Pawn(Piece):
         super().__init__(square_num, color)
         self.type = 'pawn'
         self.color = 'color'
+        self.has_moved = False
 
     def move(self, new_square):
         if new_square in self.get_moves():
@@ -57,6 +61,8 @@ class Pawn(Piece):
 
     def get_valid_moves(self, flat_grid):
         candidates = [max(0, self.position - 8)]
+        if not self.has_moved:
+            candidates.append(max(0, self.position - 16))
         return [move for move in candidates if not flat_grid[move-1].piece]
 
 
@@ -78,15 +84,10 @@ def make_grid(rows, width):
 
 
 def create_pieces(grid):
-    pieces = []
     for row in grid:
         for square in row:
             if square.num <= 16 or square.num >= 49:
-                pieces.append(Pawn(square.num, 'black'))
-                square.piece = 'pawn'
-            else:
-                pieces.append("")
-    return pieces
+                square.piece = Pawn(square.num, 'black')
 
 
 def get_clicked_pos(pos, rows, width):
@@ -99,17 +100,17 @@ def get_clicked_pos(pos, rows, width):
     return row, col
 
 
-def draw(win, grid, pieces, grid_coord, pawn):
+def draw(win, grid, pawn, fps):
     win.fill(WHITE)
 
 
     for row in grid:
         for square in row:
             square.draw(win)
-
-    for piece in pieces:
-        if piece:
-            win.blit(pawn, (grid_coord[piece.position -1][0] -17, grid_coord[piece.position -1][1] -40))
+            if square.piece:
+                win.blit(pawn, (square.x -17, square.y -40))
+    if fps:
+        win.blit(fps, (2, 2))
     
     pygame.display.update()
 
@@ -118,12 +119,11 @@ def main(win, width):
     ROWS = 8
     grid = make_grid(ROWS, width)
     flat_grid = [item for sublist in grid for item in sublist]
-    grid_coord = [(square.x,square.y) for square in flat_grid]
-    pieces = create_pieces(grid)
+    create_pieces(grid)
     pawn = pygame.image.load("pawn4.png")
     pawn = pygame.transform.scale(pawn, (130, 130))
 
-    draw(win, grid, pieces, grid_coord, pawn)
+    draw(win, grid, pawn, fps= "")
     
     state = 'base'
 
@@ -131,38 +131,39 @@ def main(win, width):
     while run:
         for event in pygame.event.get():
             if state == 'base':
-                if pygame.mouse.get_pressed()[0]:
+                if pygame.mouse.get_pressed()[0]: #LEFT
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
                     starting_square = grid[col][row]
-                    selected_piece = pieces[starting_square.num-1]
+                    selected_piece = starting_square.piece
                     if selected_piece:
                         starting_square.select_square()
                         state = 'move'
             elif state == 'move':
-                if pygame.mouse.get_pressed()[2]:
+                if pygame.mouse.get_pressed()[2]: #RIGHT
                     state = 'base'
                     starting_square.color = starting_square.default_color
 
                 if pygame.mouse.get_pressed()[0]:
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
-                    selected_square = grid[col][row]
-                    if selected_square.num in selected_piece.get_valid_moves(flat_grid):
-                        starting_square.piece = ""
-                        selected_square.piece = "pawn"
-                        selected_piece.position = selected_square.num
-                        pieces[starting_square.num -1], pieces[selected_square.num -1] = "", pieces[starting_square.num -1]
-                        selected_square.select_square2()
+                    target_square = grid[col][row]
+                    if target_square.num in selected_piece.get_valid_moves(flat_grid):
+                        starting_square.piece, target_square.piece = "", starting_square.piece
+                        target_square.piece.position = target_square.num
+                        target_square.piece.has_moved = True
+                        #target_square.select_square2()
                         starting_square.color = starting_square.default_color
                         state = 'base'
-
-
+            
 
             if event.type == pygame.QUIT:
                 run = False
         
-        draw(win, grid, pieces, grid_coord, pawn)
+        fps = font.render(str(int(clock.get_fps())), True, pygame.Color('white'))
+
+
+        draw(win, grid, pawn,fps)
 
     
     pygame.quit()
