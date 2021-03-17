@@ -1,11 +1,8 @@
 import pygame
 
-pygame.init()
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Chess Game")
-font = pygame.font.Font(None, 30)
-clock = pygame.time.Clock()
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -25,8 +22,8 @@ class Square:
         self.num = Square.square_num
         self.row = row
         self.col = col
-        self.x = row * width
-        self.y = col * width
+        self.x = col * width
+        self.y = row * width
         self.width = width
         self.piece = ""
         self.color = color
@@ -70,16 +67,16 @@ class Pawn(Piece):
 def make_grid(rows, width):
     grid = []
     gap = width // rows
-    colors = [(128,128,128), (255,255,255)]
+    colors = [GREY, WHITE]
     color_idx = 0
     for i in range(rows):
         color_idx += 1
         grid.append([])
         for j in range(rows):
-            spot = Square(j, i, gap, colors[color_idx % 2])
+            spot = Square(i, j, gap, colors[color_idx % 2])
             grid[i].append(spot)
             color_idx += 1
-
+    print(grid[0][1].row, grid[0][1].col, grid[0][1].x)
     return grid
 
 
@@ -100,7 +97,7 @@ def get_clicked_pos(pos, rows, width):
     return row, col
 
 
-def draw(win, grid, pawn, fps):
+def draw(win, grid, pawn):
     win.fill(WHITE)
 
 
@@ -108,9 +105,7 @@ def draw(win, grid, pawn, fps):
         for square in row:
             square.draw(win)
             if square.piece:
-                win.blit(pawn, (square.x -17, square.y -40))
-    if fps:
-        win.blit(fps, (2, 2))
+                win.blit(pawn, (square.x + 10, square.y + 10))
     
     pygame.display.update()
 
@@ -120,10 +115,10 @@ def main(win, width):
     grid = make_grid(ROWS, width)
     flat_grid = [item for sublist in grid for item in sublist]
     create_pieces(grid)
-    pawn = pygame.image.load("pawn4.png")
-    pawn = pygame.transform.scale(pawn, (130, 130))
+    pawn = pygame.image.load("piece0.png")
+    pawn = pygame.transform.scale(pawn, (80, 80))
 
-    draw(win, grid, pawn, fps= "")
+    draw(win, grid, pawn)
     
     state = 'base'
 
@@ -160,10 +155,10 @@ def main(win, width):
             if event.type == pygame.QUIT:
                 run = False
         
-        fps = font.render(str(int(clock.get_fps())), True, pygame.Color('white'))
+        
 
 
-        draw(win, grid, pawn,fps)
+        draw(win, grid, pawn)
 
     
     pygame.quit()
