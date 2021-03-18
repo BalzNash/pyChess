@@ -1,8 +1,10 @@
+from pieces import *
 import pygame
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Chess Game")
+
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -14,6 +16,7 @@ PURPLE = (128, 0, 128)
 ORANGE = (255, 165, 0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
+
 
 class Square:
     square_num = 1
@@ -38,30 +41,6 @@ class Square:
 
     def draw(self, win):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
-
-
-class Piece:
-    def __init__(self, square_num, color):
-        self.position = square_num
-        self.color = color
-    
-class Pawn(Piece):
-    def __init__(self, square_num, color):
-        super().__init__(square_num, color)
-        self.type = 'pawn'
-        self.color = 'color'
-        self.has_moved = False
-
-    def move(self, new_square):
-        if new_square in self.get_moves():
-            self.position = new_square
-
-    def get_valid_moves(self, flat_grid):
-        candidates = [max(0, self.position - 8)]
-        if not self.has_moved:
-            candidates.append(max(0, self.position - 16))
-        return [move for move in candidates if not flat_grid[move-1].piece]
-
 
 
 def make_grid(rows, width):
