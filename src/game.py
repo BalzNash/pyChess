@@ -17,12 +17,14 @@ PURPLE = (128, 0, 128)
 ORANGE = (255, 165, 0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
+BOARD_1 = (232, 231, 201)
+BOARD_2 = (90, 135, 113)
 
 
 def make_grid(rows, width):
     grid = []
     gap = width // rows
-    colors = [GREY, WHITE]
+    colors = [BOARD_2, BOARD_1]
     color_idx = 0
     for i in range(rows):
         color_idx += 1
@@ -90,6 +92,8 @@ def main(win, width):
     draw(win, grid, pawn)
     
     state = 'base'
+    players = ['white', 'black']
+    to_move_idx = 0
 
     run = True
     while run:
@@ -100,7 +104,7 @@ def main(win, width):
                     row, col = get_clicked_pos(pos, ROWS, width)
                     starting_square = grid[col][row]
                     selected_piece = starting_square.piece
-                    if selected_piece:
+                    if selected_piece and selected_piece.color == players[to_move_idx]:
                         starting_square.color_square()
                         state = 'move'
             elif state == 'move':
@@ -118,6 +122,7 @@ def main(win, width):
                         target_square.piece.has_moved = True
                         #target_square.select_square2()
                         starting_square.color = starting_square.default_color
+                        to_move_idx = (to_move_idx + 1) % 2
                         state = 'base'
             
 

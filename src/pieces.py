@@ -21,14 +21,14 @@ class Pawn(Piece):
             if not self.has_moved:
                 candidates.append(max(0, self.position -16)) if not flat_grid[self.position-8-1].piece else ""
             capture_candicates = [i for i in [self.position -9, self.position -7] if i >= 1]
-            capture = [i for i in capture_candicates if flat_grid[i-1].piece and flat_grid[i-1].piece.color == 'black'] # FIX LIMIT
+            capture = [i for i in capture_candicates if flat_grid[i-1].piece and flat_grid[i-1].piece.color == 'black']
         
         else:
             candidates = [self.position +8] if self.position +8 <= 64 else []
             if not self.has_moved:
                 candidates.append(max(0, self.position +16)) if not flat_grid[self.position+8-1].piece else ""
             capture_candicates = [i for i in [self.position +9, self.position +7] if i <= 64]
-            capture = [i for i in capture_candicates if flat_grid[i-1].piece and flat_grid[i-1].piece.color == 'white'] # FIX LIMIT
+            capture = [i for i in capture_candicates if flat_grid[i-1].piece and flat_grid[i-1].piece.color == 'white']
         
         candidates = [move for move in candidates if not flat_grid[move-1].piece]
 
@@ -59,13 +59,12 @@ class Rook(Piece):
         self.type = 'rook'
         self.has_moved = False
 
-    def get_row_candidates(self, candidates_row, flat_grid):
+    def get_candidates(self, candidates_row, flat_grid):
         candidates = []
         row_idx = candidates_row.index(self.position)
         moving_idx = row_idx
         direction = 'up'
         while direction:
-            print(direction)
             if direction == 'up':
                 moving_idx += 1
                 try:
@@ -96,11 +95,8 @@ class Rook(Piece):
 
     def get_valid_moves(self, flat_grid):
         candidates_row = rows_squares[flat_grid[self.position-1].row]
-        print(candidates_row)
         candidates_col = cols_squares[flat_grid[self.position-1].col]
-        print(candidates_col)
-        candidates = self.get_row_candidates(candidates_row, flat_grid) + self.get_row_candidates(candidates_col, flat_grid)
-        print('this is', candidates)
+        candidates = self.get_candidates(candidates_row, flat_grid) + self.get_candidates(candidates_col, flat_grid)
         
         if self.color == 'white':
             return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
