@@ -1,5 +1,3 @@
-from numpy.core.defchararray import index
-from numpy.core.fromnumeric import reshape
 import pygame
 import os
 import numpy as np
@@ -161,6 +159,93 @@ class Queen(Piece):
         super().__init__(square_num, color)
         self.type = 'queen'
         self.has_moved = False
+
+
+    def get_candidates_row_col(self, candidates_row, flat_grid):
+        candidates = []
+        row_idx = candidates_row.index(self.position)
+        moving_idx = row_idx
+        direction = 'up'
+        while direction:
+            if direction == 'up':
+                moving_idx += 1
+                try:
+                    square_num = candidates_row[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(square_num)
+                        moving_idx = row_idx
+                        direction = 'down'
+                    else:
+                        candidates.append(square_num)
+                except IndexError:
+                    moving_idx = row_idx
+                    direction = 'down'
+            
+            else:
+                moving_idx -= 1
+                if moving_idx >= 0:
+                    square_num = candidates_row[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(candidates_row[moving_idx])
+                        direction = ""
+                    else:
+                        candidates.append(candidates_row[moving_idx])
+                else:
+                    direction = ""
+        
+        return candidates
+
+
+    def get_candidates_diag(self, flat_grid, diagonals):
+        candidates = []
+
+        for i in list(diagonals.values()):
+            if self.position in i:
+                diagonal = i
+                diag_idx = diagonal.index(self.position)
+                break
+
+        moving_idx = diag_idx
+        direction = 'right'
+        while direction:
+            if direction == 'right':
+                moving_idx += 1
+                try:
+                    square_num = diagonal[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(square_num)
+                        moving_idx = diag_idx
+                        direction = 'left'
+                    else:
+                        candidates.append(square_num)
+                except IndexError:
+                    moving_idx = diag_idx
+                    direction = 'left'
+            else:
+                moving_idx -= 1
+                if moving_idx >= 0:
+                    square_num = diagonal[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(square_num)
+                        direction = ""
+                    else:
+                        candidates.append(square_num)
+                else:
+                    direction = ""
+            
+        return candidates    
+
+
+    def get_valid_moves(self, flat_grid, grid_array):
+        candidates_row = rows_squares[flat_grid[self.position-1].row]
+        candidates_col = cols_squares[flat_grid[self.position-1].col]
+        candidates = self.get_candidates_row_col(candidates_row, flat_grid) + self.get_candidates_row_col(candidates_col, flat_grid)  \
+                   + self.get_candidates_diag(flat_grid, diagonal_1_squares) + self.get_candidates_diag(flat_grid, diagonal_2_squares)
+
+        if self.color == 'white':
+            return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
+        else:
+            return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'white')]
 
 
 class King(Piece):

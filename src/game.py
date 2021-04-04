@@ -66,7 +66,7 @@ def get_clicked_pos(pos, rows, width):
     return row, col
 
 
-def draw(win, grid, pawn):
+def draw(win, grid):
     win.fill(WHITE)
 
     for row in grid:
@@ -90,7 +90,7 @@ def main(win, width):
     
     create_pieces(grid, parsed_FEN, piece_mapper)
 
-    draw(win, grid, pawn)
+    draw(win, grid)
     
     state = 'base'
     players = ['white', 'black']
@@ -126,16 +126,12 @@ def main(win, width):
                         to_move_idx = (to_move_idx + 1) % 2
                         state = 'base'
             
-
             if event.type == pygame.QUIT:
                 run = False
         
-        
+        draw(win, grid)
 
-
-        draw(win, grid, pawn)
-
-    
     pygame.quit()
+
 
 main(WIN, WIDTH)
