@@ -1,5 +1,8 @@
+from numpy.core.defchararray import index
+from numpy.core.fromnumeric import reshape
 import pygame
 import os
+import numpy as np
 #print(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -15,19 +18,19 @@ class Pawn(Piece):
         self.type = 'pawn'
         self.has_moved = False
 
-    def get_valid_moves(self, flat_grid):
+    def get_valid_moves(self, flat_grid, grid_array):
         if self.color == 'white':
             candidates = [self.position -8] if self.position -8 >= 1 else []
             if not self.has_moved:
                 candidates.append(max(0, self.position -16)) if not flat_grid[self.position-8-1].piece else ""
-            capture_candicates = [i for i in [self.position -9, self.position -7] if i >= 1]
+            capture_candicates = [i for i in [self.position -9, self.position -7] if i >= 1 and np.where(grid_array == self.position)[0][0] != np.where(grid_array == i)[0][0]]
             capture = [i for i in capture_candicates if flat_grid[i-1].piece and flat_grid[i-1].piece.color == 'black']
         
         else:
             candidates = [self.position +8] if self.position +8 <= 64 else []
             if not self.has_moved:
                 candidates.append(max(0, self.position +16)) if not flat_grid[self.position+8-1].piece else ""
-            capture_candicates = [i for i in [self.position +9, self.position +7] if i <= 64]
+            capture_candicates = [i for i in [self.position +9, self.position +7] if i <= 64 and np.where(grid_array == self.position)[0][0] != np.where(grid_array == i)[0][0]]
             capture = [i for i in capture_candicates if flat_grid[i-1].piece and flat_grid[i-1].piece.color == 'white']
         
         candidates = [move for move in candidates if not flat_grid[move-1].piece]
@@ -44,6 +47,55 @@ class Bishop(Piece):
         super().__init__(square_num, color)
         self.type = 'bishop'
         self.has_moved = False
+    
+    def get_candidates(self, flat_grid, diagonals):
+        candidates = []
+
+        for i in list(diagonals.values()):
+            if self.position in i:
+                diagonal = i
+                diag_idx = diagonal.index(self.position)
+                break
+
+        moving_idx = diag_idx
+        direction = 'right'
+        while direction:
+            if direction == 'right':
+                moving_idx += 1
+                try:
+                    square_num = diagonal[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(square_num)
+                        moving_idx = diag_idx
+                        direction = 'left'
+                    else:
+                        candidates.append(square_num)
+                except IndexError:
+                    moving_idx = diag_idx
+                    direction = 'left'
+            else:
+                moving_idx -= 1
+                if moving_idx >= 0:
+                    square_num = diagonal[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(square_num)
+                        direction = ""
+                    else:
+                        candidates.append(square_num)
+                else:
+                    direction = ""
+            
+        return candidates
+
+
+    def get_valid_moves(self, flat_grid, grid_array):
+        candidates = self.get_candidates(flat_grid, diagonal_1_squares) + self.get_candidates(flat_grid, diagonal_2_squares)
+        if self.color == 'white':
+            return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
+        else:
+            return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'white')]
+
+
 
 
 class Knight(Piece):
@@ -70,11 +122,11 @@ class Rook(Piece):
                 try:
                     square_num = candidates_row[moving_idx]
                     if flat_grid[square_num-1].piece:
-                        candidates.append(candidates_row[moving_idx])
+                        candidates.append(square_num)
                         moving_idx = row_idx
                         direction = 'down'
                     else:
-                        candidates.append(candidates_row[moving_idx])
+                        candidates.append(square_num)
                 except IndexError:
                     moving_idx = row_idx
                     direction = 'down'
@@ -93,7 +145,7 @@ class Rook(Piece):
             
         return candidates
 
-    def get_valid_moves(self, flat_grid):
+    def get_valid_moves(self, flat_grid, grid_array):
         candidates_row = rows_squares[flat_grid[self.position-1].row]
         candidates_col = cols_squares[flat_grid[self.position-1].col]
         candidates = self.get_candidates(candidates_row, flat_grid) + self.get_candidates(candidates_col, flat_grid)
@@ -175,3 +227,35 @@ cols_squares = {0: [1,9,17,25,33,41,49,57],
                 5: [6,14,22,30,38,46,54,62],
                 6: [7,15,23,31,39,47,55,63],
                 7: [8,16,24,32,40,48,56,64]}
+
+diagonal_1_squares = {0: [1],
+                      1: [2,9],
+                      2: [3,10,17],
+                      3: [4,11,18,25],
+                      4: [5,12,19,26,33],
+                      5: [6,13,20,27,34,41],
+                      6: [7,14,21,28,35,42,49],
+                      7: [8,15,22,29,36,43,50,57],
+                      8: [16,23,30,37,44,51,58],
+                      9: [24,31,38,45,52,59],
+                     10: [32,39,46,53,60],
+                     11: [40,47,54,61],
+                     12: [48,55,62],
+                     13: [56,63],
+                     14: [64]}
+
+diagonal_2_squares = {0: [8],
+                      1: [7,16],
+                      2: [6,15,24],
+                      3: [5,14,23,32],
+                      4: [4,13,22,31,40],
+                      5: [3,12,21,30,39,48],
+                      6: [2,11,20,29,38,47,56],
+                      7: [1,10,19,28,37,46,55,64],
+                      8: [9,18,27,36,45,54,63],
+                      9: [17,26,35,44,53,62],
+                     10: [25,34,43,52,61],
+                     11: [33,42,51,60],
+                     12: [41,50,59],
+                     13: [49,58],
+                     14: [57]}

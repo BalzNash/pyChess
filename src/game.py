@@ -86,6 +86,7 @@ def main(win, width):
 
     grid = make_grid(ROWS, width)
     flat_grid = [item for sublist in grid for item in sublist]
+    grid_array = np.arange(1,65).reshape((8,8))
     
     create_pieces(grid, parsed_FEN, piece_mapper)
 
@@ -116,7 +117,7 @@ def main(win, width):
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
                     target_square = grid[col][row]
-                    if target_square.num in selected_piece.get_valid_moves(flat_grid):
+                    if target_square.num in selected_piece.get_valid_moves(flat_grid, grid_array):
                         starting_square.piece, target_square.piece = "", starting_square.piece
                         target_square.piece.position = target_square.num
                         target_square.piece.has_moved = True
