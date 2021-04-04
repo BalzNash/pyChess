@@ -101,6 +101,17 @@ class Knight(Piece):
         super().__init__(square_num, color)
         self.type = 'knight'
         self.has_moved = False
+    
+    def get_valid_moves(self, flat_grid, grid_array):
+        candidates = [self.position -15, self.position -6, self.position +10, self.position +17,
+                      self.position +15, self.position +6, self.position -10, self.position -17]
+
+        candidates = [i for i in candidates if 1 <= i <= 64 and abs(np.where(grid_array == self.position)[0][0] - np.where(grid_array == i)[0][0]) <= 2 \
+                                                            and abs(np.where(grid_array == self.position)[1][0] - np.where(grid_array == i)[1][0]) <= 2]        
+        if self.color == 'white':
+            return [move for move in candidates if (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
+        else:
+            return [move for move in candidates if (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'white')]        
 
 
 class Rook(Piece):
@@ -253,6 +264,20 @@ class King(Piece):
         super().__init__(square_num, color)
         self.type = 'king'
         self.has_moved = False
+    
+    def get_valid_moves(self, flat_grid, grid_array):
+        candidates = [self.position + 1, self.position + 8, self.position - 1, self.position -8,
+                      self.position - 9, self.position - 7, self.position + 9, self.position +7]
+
+        candidates = [i for i in candidates if 1 <= i <= 64 and abs(np.where(grid_array == self.position)[0][0] - np.where(grid_array == i)[0][0]) <= 1 \
+                                                      and abs(np.where(grid_array == self.position)[1][0] - np.where(grid_array == i)[1][0]) <= 1]
+
+        if self.color == 'white':
+            return [move for move in candidates if (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
+        else:
+            return [move for move in candidates if (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'white')]
+
+
 
 sprites_path = ".\data\\sprites\\"
 
