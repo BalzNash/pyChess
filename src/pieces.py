@@ -58,13 +58,53 @@ class Rook(Piece):
         super().__init__(square_num, color)
         self.type = 'rook'
         self.has_moved = False
-        
+
+    def get_row_candidates(self, candidates_row, flat_grid):
+        candidates = []
+        row_idx = candidates_row.index(self.position)
+        moving_idx = row_idx
+        direction = 'up'
+        while direction:
+            print(direction)
+            if direction == 'up':
+                moving_idx += 1
+                try:
+                    square_num = candidates_row[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(candidates_row[moving_idx])
+                        moving_idx = row_idx
+                        direction = 'down'
+                    else:
+                        candidates.append(candidates_row[moving_idx])
+                except IndexError:
+                    moving_idx = row_idx
+                    direction = 'down'
+            
+            else:
+                moving_idx -= 1
+                if moving_idx >= 0:
+                    square_num = candidates_row[moving_idx]
+                    if flat_grid[square_num-1].piece:
+                        candidates.append(candidates_row[moving_idx])
+                        direction = ""
+                    else:
+                        candidates.append(candidates_row[moving_idx])
+                else:
+                    direction = ""
+            
+        return candidates
+
     def get_valid_moves(self, flat_grid):
+        candidates_row = rows_squares[flat_grid[self.position-1].row]
+        print(candidates_row)
+        candidates_col = cols_squares[flat_grid[self.position-1].col]
+        print(candidates_col)
+        candidates = self.get_row_candidates(candidates_row, flat_grid) + self.get_row_candidates(candidates_col, flat_grid)
+        print('this is', candidates)
+        
         if self.color == 'white':
-            candidates = rows_squares[flat_grid[self.position-1].row] + cols_squares[flat_grid[self.position-1].col]
             return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
         else:
-            candidates = rows_squares[flat_grid[self.position-1].row] + cols_squares[flat_grid[self.position-1].col]
             return [move for move in candidates if move != self.position and (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'white')]
 
 
