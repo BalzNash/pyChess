@@ -6,7 +6,6 @@ WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Chess Game")
 
-
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -60,8 +59,9 @@ def get_clicked_pos(pos, rows, width):
     gap = width // rows
     y, x = pos
 
-    row = y // gap
-    col = x // gap
+    row = x // gap 
+    col = y // gap
+
 
     return row, col
 
@@ -78,9 +78,11 @@ def draw(win, grid):
     pygame.display.update()
 
 
+#-------------------------------------- MAIN ----------------------------------------------
+
+
 def main(win, width):
     ROWS = 8
-    
     FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
     parsed_FEN = FEN_converter(FEN)
 
@@ -103,7 +105,8 @@ def main(win, width):
                 if pygame.mouse.get_pressed()[0]: #LEFT
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
-                    starting_square = grid[col][row]
+                    print(row, col)
+                    starting_square = grid[row][col]
                     selected_piece = starting_square.piece
                     if selected_piece and selected_piece.color == players[to_move_idx]:
                         starting_square.color_square()
@@ -116,13 +119,14 @@ def main(win, width):
                 if pygame.mouse.get_pressed()[0]:
                     pos = pygame.mouse.get_pos()
                     row, col = get_clicked_pos(pos, ROWS, width)
-                    target_square = grid[col][row]
+                    target_square = grid[row][col]
+
                     if target_square.num in selected_piece.get_valid_moves(flat_grid, grid_array):
                         starting_square.piece, target_square.piece = "", starting_square.piece
                         target_square.piece.position = target_square.num
                         target_square.piece.has_moved = True
-                        #target_square.select_square2()
                         starting_square.color = starting_square.default_color
+                        
                         to_move_idx = (to_move_idx + 1) % 2
                         state = 'base'
             

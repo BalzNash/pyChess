@@ -278,6 +278,7 @@ class King(Piece):
             return [move for move in candidates if (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'white')]
 
 
+#------------------------------------- LOAD PIECES ------------------------------------------------------
 
 sprites_path = ".\data\\sprites\\"
 
@@ -300,8 +301,8 @@ pawn = pygame.image.load(sprites_path + "06.png"), pygame.image.load(sprites_pat
 pawn = pygame.transform.scale(pawn[0], (80, 80)), pygame.transform.scale(pawn[1], (80, 80))
 
 
+#---------------------------------------- UTILS ----------------------------------------------------------
 
-#rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 
 def FEN_converter(fen_position):
     pieces = []
