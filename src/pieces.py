@@ -301,6 +301,25 @@ pawn = pygame.image.load(sprites_path + "06.png"), pygame.image.load(sprites_pat
 pawn = pygame.transform.scale(pawn[0], (80, 80)), pygame.transform.scale(pawn[1], (80, 80))
 
 
+def create_pieces(grid, parsed_FEN, mapping):
+    i = 0
+    for row in grid:
+        for square in row:
+            char = parsed_FEN[i]
+            if char:
+                square.piece = mapping[char](square.num, 'black')
+                if char.isupper():
+                    square.piece.color = 'white'
+            i += 1
+
+
+def draw_pieces(square, win):
+    if square.piece.color == 'white':
+        win.blit(sprite_mapper[square.piece.type][0], (square.x + 10, square.y + 10))
+    else:
+        win.blit(sprite_mapper[square.piece.type][1], (square.x + 10, square.y + 10))
+
+
 #---------------------------------------- UTILS ----------------------------------------------------------
 
 
