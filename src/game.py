@@ -21,6 +21,9 @@ BOARD_1 = (232, 231, 201)
 BOARD_2 = (90, 135, 113)
 
 
+#---------------------------------- GAME FUNCTIONS ---------------------------------------
+
+
 def get_clicked_pos(pos, rows, width):
     gap = width // rows
     y, x = pos
@@ -35,11 +38,11 @@ def select_square(grid, ROWS, width):
     return grid[row][col]
 
 
-def is_valid_piece(square, players, to_move_idx):
+def is_valid_start(square, players, to_move_idx):
     return (square.piece and square.piece.color == players[to_move_idx])
 
 
-def is_valid_move(start, target, flat_grid, grid_array):
+def is_valid_target(start, target, flat_grid, grid_array):
     return target.num in start.piece.get_valid_moves(flat_grid, grid_array)
 
 
@@ -84,7 +87,7 @@ def main(win, width, ROWS):
             if state == 'base':
                 if pygame.mouse.get_pressed()[0]: #LEFT
                     start_square = select_square(grid, ROWS, width)
-                    if is_valid_piece(start_square, players, to_move_idx):
+                    if is_valid_start(start_square, players, to_move_idx):
                         start_square.highlight_square()
                         state = 'move'
 
@@ -96,7 +99,7 @@ def main(win, width, ROWS):
                 if pygame.mouse.get_pressed()[0]:
                     target_square = select_square(grid, ROWS, width)
 
-                    if is_valid_move(start_square, target_square, flat_grid, grid_array):
+                    if is_valid_target(start_square, target_square, flat_grid, grid_array):
                         move_piece(start_square, target_square)
                         start_square.set_default_color()
                         to_move_idx = (to_move_idx + 1) % 2
