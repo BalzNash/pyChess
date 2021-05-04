@@ -158,9 +158,9 @@ class Rook(Piece):
         return candidates
 
     def get_valid_moves(self, flat_grid, grid_array):
-        candidates_row = rows_squares[flat_grid[self.position-1].row]
-        candidates_col = cols_squares[flat_grid[self.position-1].col]
-        candidates = self.get_candidates(candidates_row, flat_grid) + self.get_candidates(candidates_col, flat_grid)
+        row_squares = rows_squares[flat_grid[self.position-1].row]
+        col_squares = cols_squares[flat_grid[self.position-1].col]
+        candidates = self.get_candidates(row_squares, flat_grid) + self.get_candidates(col_squares, flat_grid)
         
         if self.color == 'white':
             return [move for move in candidates if (flat_grid[move-1].piece == '' or flat_grid[move-1].piece.color == 'black')]
@@ -251,9 +251,9 @@ class Queen(Piece):
 
 
     def get_valid_moves(self, flat_grid, grid_array):
-        candidates_row = rows_squares[flat_grid[self.position-1].row]
-        candidates_col = cols_squares[flat_grid[self.position-1].col]
-        candidates = self.get_candidates_row_col(candidates_row, flat_grid)  + self.get_candidates_row_col(candidates_col, flat_grid)  \
+        row_squares = rows_squares[flat_grid[self.position-1].row]
+        col_squares = cols_squares[flat_grid[self.position-1].col]
+        candidates = self.get_candidates_row_col(row_squares, flat_grid)  + self.get_candidates_row_col(col_squares, flat_grid)  \
                    + self.get_candidates_diag(flat_grid, diagonal_1_squares) + self.get_candidates_diag(flat_grid, diagonal_2_squares)
 
         if self.color == 'white':
@@ -337,6 +337,48 @@ def FEN_converter(fen_position):
         else:
             pieces.append(char)
     return pieces
+
+
+
+def is_king_safe(start, target, flat_grid, grid_array):
+    colors = ['black', 'white']
+    to_move = start.piece.color
+    to_move_next = colors[(colors.index(to_move) + 1) % 2]
+
+    temp_start = start.piece
+    temp_end = target.piece
+    temp_start_piece_pos = temp_start.position
+
+
+    start.piece, target.piece = "", start.piece
+    target.piece.position = target.num
+
+    for square in flat_grid:
+        if square.piece and square.piece.color == to_move and square.piece.type == 'king':
+            king_coord = square.num
+            break
+
+    attacked = []
+
+    for square in flat_grid:
+        if square.piece and square.piece.color == to_move_next:
+            attacked.extend(square.piece.get_valid_moves(flat_grid, grid_array))
+    if king_coord in attacked:
+        out = False
+    else:
+        out = True
+    
+    start.piece = temp_start
+    target.piece = temp_end
+    start.piece.position = temp_start_piece_pos
+
+    return out
+
+    # execute move
+    # iterate over grid to find attacked squares
+    # out = if active player king is attacked False, else True
+    # undo move
+    # return out
 
 
 piece_mapper =  {'p': Pawn, 'n': Knight, 'b': Bishop, 'r': Rook, 'q': Queen, 'k': King, 'P': Pawn, 'N': Knight, 'B': Bishop, 'R': Rook, 'Q': Queen, 'K': King}

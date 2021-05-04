@@ -38,19 +38,60 @@ def select_square(grid, ROWS, width):
     return grid[row][col]
 
 
-def is_valid_start(square, players, to_move_idx):
-    return (square.piece and square.piece.color == players[to_move_idx])
+def has_valid_moves(square, flat_grid, grid_array):
+    if square.piece.get_valid_moves(flat_grid, grid_array):
+        return True
+    else:
+        return False
+
+
+def is_valid_start(square, players, to_move_idx, flat_grid, grid_array):
+    return (square.piece and square.piece.color == players[to_move_idx] and has_valid_moves(square, flat_grid, grid_array))
 
 
 def is_valid_target(start, target, flat_grid, grid_array):
     return target.num in start.piece.get_valid_moves(flat_grid, grid_array)
 
 
+def are_moves_available(flat_grid, grid_array, players, to_move_idx):
+    for square in flat_grid:
+        if square.piece and square.piece.color == players[to_move_idx]:
+            valid_moves = square.piece.get_valid_moves(flat_grid, grid_array)
+            if valid_moves:
+                for move in valid_moves:
+                    if is_king_safe(square, flat_grid[move-1], flat_grid, grid_array):
+                        return True
+    return False
+
+def is_check(flat_grid, grid_array, players, to_move_idx):
+    to_move = players[to_move_idx]
+    to_move_next = players[(to_move_idx+1)%2]
+    for square in flat_grid:
+        if square.piece and square.piece.color == to_move and square.piece.type == 'king':
+            king_coord = square.num
+            break
+
+    attacked = []
+
+    for square in flat_grid:
+        if square.piece and square.piece.color == to_move_next:
+            attacked.extend(square.piece.get_valid_moves(flat_grid, grid_array))
+    return king_coord in attacked
+
+
+
+def is_checkmate(check_flag):
+    return (not are_moves_available() and check_flag)
+
+
+def is_stalemate(check_flag):
+    return  (not are_moves_available() and not check_flag)
+
+
 def move_piece(start, target):
     start.piece, target.piece = "", start.piece
     target.piece.position = target.num
     target.piece.has_moved = True
-
 
 
 def draw(win, grid):
@@ -65,6 +106,7 @@ def draw(win, grid):
 
 #-------------------------------------- MAIN ----------------------------------------------
 
+# to add function for check flag
 
 def main(win, width, ROWS):
     grid = make_grid(ROWS, width)
@@ -80,14 +122,17 @@ def main(win, width, ROWS):
     state = 'base'
     players = ['white', 'black']
     to_move_idx = 0
+    game_ended = False
 
     run = True
     while run:
         for event in pygame.event.get():
             if state == 'base':
-                if pygame.mouse.get_pressed()[0]: #LEFT
+                if not are_moves_available(flat_grid,grid_array,players,to_move_idx):
+                    state = 'end'
+                elif pygame.mouse.get_pressed()[0]: #LEFT
                     start_square = select_square(grid, ROWS, width)
-                    if is_valid_start(start_square, players, to_move_idx):
+                    if is_valid_start(start_square, players, to_move_idx, flat_grid, grid_array):
                         start_square.highlight_square()
                         state = 'move'
 
@@ -99,11 +144,23 @@ def main(win, width, ROWS):
                 if pygame.mouse.get_pressed()[0]:
                     target_square = select_square(grid, ROWS, width)
 
-                    if is_valid_target(start_square, target_square, flat_grid, grid_array):
+                    if is_valid_target(start_square, target_square, flat_grid, grid_array) and is_king_safe(start_square, target_square, flat_grid, grid_array):
                         move_piece(start_square, target_square)
                         start_square.set_default_color()
                         to_move_idx = (to_move_idx + 1) % 2
                         state = 'base'
+            
+            elif state == 'end':
+                if game_ended:
+                    pass
+                else:
+                    game_ended = True
+                    if is_check(flat_grid, grid_array, players, to_move_idx):
+                        print('Checkmate!', players[(to_move_idx+1) % 2], 'has won')
+                    else:
+                        print('Stalemate!')
+
+                    
             
             if event.type == pygame.QUIT:
                 run = False
