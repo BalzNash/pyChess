@@ -79,15 +79,6 @@ def is_check(flat_grid, grid_array, players, to_move_idx):
     return king_coord in attacked
 
 
-
-def is_checkmate(check_flag):
-    return (not are_moves_available() and check_flag)
-
-
-def is_stalemate(check_flag):
-    return  (not are_moves_available() and not check_flag)
-
-
 def move_piece(start, target):
     start.piece, target.piece = "", start.piece
     target.piece.position = target.num
@@ -106,7 +97,6 @@ def draw(win, grid):
 
 #-------------------------------------- MAIN ----------------------------------------------
 
-# to add function for check flag
 
 def main(win, width, ROWS):
     grid = make_grid(ROWS, width)
